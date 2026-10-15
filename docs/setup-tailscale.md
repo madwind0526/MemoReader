@@ -2,7 +2,7 @@
 
 MemoReader 서버는 `127.0.0.1`에서만 열려 있다. 폰은 Tailscale의 `tailscale serve`를 통해서만 접속하며, 이때 Tailscale이 붙여 주는 신원 헤더(로그인 계정)로 인증한다. 별도 비밀번호는 없다.
 
-> 이 문서의 명령은 Tailscale 공식 CLI 기준이며, 이 프로젝트를 만든 PC에는 Tailscale이 없어 실기기에서 검증하지 못했다. 막히면 `tailscale serve --help`로 현재 버전의 옵션을 확인한다.
+> 전체 설치 순서는 [install.md](install.md)에 있다. 이 문서는 Tailscale과 폰 접속만 따로 정리한 것이다. 막히면 `tailscale serve --help`로 현재 버전의 옵션을 확인한다.
 
 ## 1. 준비 (한 번만)
 

@@ -28,6 +28,8 @@ npm test             # 백엔드·서비스 워커 테스트
 npm run build        # 타입체크 + 프로덕션 빌드
 ```
 
+처음부터 설치하는 순서(Node, LLM 연결, 자동 시작, Tailscale, 폰 설치, 텔레그램, 쿠키)는 **[docs/install.md](docs/install.md)** 를 따라 하면 된다.
+
 처음 실행하면 설정 화면에서 LLM 제공업체를 고른다(claude-cli, codex-cli, opencode-cli, ollama, anthropic, openai, gemini). 실패하면 다음 제공업체로 자동 전환된다. 폰 접속은 [docs/setup-tailscale.md](docs/setup-tailscale.md), Obsidian 연동은 [docs/obsidian.md](docs/obsidian.md). 환경 변수는 `.env.example` 참고.
 
 ## 구조
