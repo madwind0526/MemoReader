@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1f6f68" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="MemoReader" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>MemoReader</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Shows why the app did not start instead of leaving a blank page: an unsupported browser,
+      // a script that failed to load, or an error thrown before React rendered anything.
+      (function () {
+        var shown = false;
+        function show(reason) {
+          var root = document.getElementById("root");
+          if (shown || !root || root.childNodes.length) return;
+          shown = true;
+          var box = document.createElement("div");
+          box.style.cssText = "max-width:560px;margin:0 auto;padding:32px 20px;font:15px/1.6 system-ui,sans-serif;color:#202d29;background:#f3f1ea;min-height:100vh;box-sizing:border-box";
+          var title = document.createElement("h1");
+          title.style.cssText = "font-size:20px;margin:0 0 12px";
+          title.textContent = "앱을 시작하지 못했어요";
+          var hint = document.createElement("p");
+          hint.textContent = "이 브라우저에서 앱이 시작되지 않았어요. 브라우저를 최신 버전으로 업데이트하거나 크롬으로 열어 보세요. 아래 내용을 알려 주시면 원인을 찾을 수 있어요.";
+          var detail = document.createElement("pre");
+          detail.style.cssText = "white-space:pre-wrap;word-break:break-all;background:#fffdf8;border:1px solid #cbd3cc;border-radius:8px;padding:12px;font-size:13px";
+          detail.textContent = String(reason) + "\n\n" + navigator.userAgent;
+          box.appendChild(title);
+          box.appendChild(hint);
+          box.appendChild(detail);
+          root.appendChild(box);
+        }
+        // Capture phase also catches a <script> that failed to load, which does not bubble.
+        window.addEventListener("error", function (event) { show(event.message || "스크립트를 불러오지 못했어요"); }, true);
+        window.addEventListener("unhandledrejection", function (event) { show(event.reason); });
+        window.setTimeout(function () { show("앱이 8초 안에 시작되지 않았어요."); }, 8000);
+      })();
+    </script>
+    <script nomodule>
+      document.getElementById("root").textContent = "이 브라우저는 너무 오래되어 앱을 실행할 수 없어요. 브라우저를 업데이트해 주세요.";
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

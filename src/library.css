@@ -1,0 +1,1392 @@
+/* Library screen on the PC: sidebar category tree, card/list/mesh views, pop-up, media preview. */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.side-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.cat-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.library-link {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+}
+
+.library-link-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px 0 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.library-link-main .cat-count {
+  margin-left: auto;
+}
+
+.cat-list {
+  list-style: none;
+  margin: 2px 0 6px;
+  padding: 0;
+}
+
+.cat-list.root {
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
+}
+
+.cat-row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius);
+  padding-right: 4px;
+}
+
+.cat-row:hover {
+  background: var(--accent);
+}
+
+.cat-row.active {
+  background: var(--accent);
+  box-shadow: inset 3px 0 0 var(--primary);
+  font-weight: 600;
+}
+
+.cat-row.drop {
+  outline: 2px dashed var(--primary);
+  outline-offset: -2px;
+  background: var(--accent);
+}
+
+.cat-link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.cat-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-count {
+  font-size: 12px;
+  color: var(--muted-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-link.active .cat-count {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.cat-toggle {
+  flex: none;
+  width: 24px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--muted-fg);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cat-toggle:hover {
+  background: var(--accent);
+  color: var(--fg);
+}
+
+.cat-toggle.strong {
+  width: 34px;
+  height: 40px;
+  color: inherit;
+}
+
+.nav-link.active .cat-toggle:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.cat-toggle.spacer {
+  pointer-events: none;
+}
+
+.cat-empty {
+  padding: 8px 10px;
+}
+
+.path-box {
+  display: block;
+  padding: 8px 10px;
+  word-break: break-all;
+  user-select: all;
+}
+
+.lib-desktop {
+  height: 100%;
+  overflow: auto;
+  padding: 18px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/*
+ * One row at every width: title on the left, search centered, view switch on the right. The search
+ * box is a share of the toolbar (so it follows the window) rather than a fixed size, and never wraps.
+ */
+.lib-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(140px, 34%, 520px) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.lib-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  justify-self: start;
+  white-space: nowrap;
+}
+
+.lib-title h1 {
+  font-size: 22px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lib-title .muted {
+  flex: none;
+}
+
+.lib-search {
+  width: 100%;
+  min-width: 0;
+  justify-self: center;
+}
+
+.lib-toolbar .view-switch {
+  justify-self: end;
+  flex-wrap: nowrap;
+}
+
+.view-switch button {
+  white-space: nowrap;
+}
+
+/* Tight toolbar: the view switch keeps only its icons so nothing has to wrap. */
+@media (max-width: 1280px) {
+  .view-switch .view-label {
+    display: none;
+  }
+
+  .view-switch button {
+    padding: 0 12px;
+  }
+}
+
+.view-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-add.compact {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+}
+
+.quick-add.compact textarea {
+  flex: 1;
+  min-height: 44px;
+  height: 44px;
+  resize: none;
+  transition: height 0.15s ease;
+}
+
+.quick-add.compact textarea:focus {
+  height: 110px;
+}
+
+.quick-add.compact .row {
+  flex-wrap: nowrap;
+  flex: none;
+}
+
+.quick-add.compact .btn {
+  min-height: 44px;
+}
+
+.lib-body {
+  min-height: 0;
+}
+
+.lib-missing {
+  margin: 0;
+}
+
+/* card view */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  align-content: start;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--fg);
+  text-decoration: none;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.tile:hover {
+  border-color: var(--ring);
+}
+
+.tile.selected {
+  border-color: var(--primary);
+}
+
+.tile-thumb,
+.row-thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  color: var(--muted-fg);
+  overflow: hidden;
+}
+
+.tile-thumb {
+  aspect-ratio: 16 / 10;
+}
+
+.tile-thumb img,
+.row-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px 14px;
+  min-width: 0;
+}
+
+.tile-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.tile-title .fav-icon {
+  margin-top: 4px;
+}
+
+.tile-summary {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 13.5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.tile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 12.5px;
+  color: var(--primary);
+}
+
+.play-badge {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  pointer-events: none;
+}
+
+.play-badge.small {
+  width: 28px;
+  height: 28px;
+}
+
+/* list view */
+
+.list-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  /* Not clipped: a hovered row floats above its neighbours and its shadow must show. The first
+     and last rows round their own corners instead. */
+}
+
+.list-row.head {
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+}
+
+.list-row:last-child {
+  border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+}
+
+.list-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 2.4fr) minmax(90px, 0.9fr) minmax(0, 1.4fr) 76px 84px;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.list-row:last-child {
+  border-bottom: 0;
+}
+
+.list-row.head {
+  font-size: 12.5px;
+  color: var(--muted-fg);
+  background: var(--secondary);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+a.list-row:hover {
+  background: var(--accent);
+}
+
+.list-row.selected {
+  background: var(--accent);
+}
+
+.row-thumb {
+  width: 56px;
+  height: 40px;
+  border-radius: 6px;
+}
+
+.row-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-title strong,
+.row-title small,
+.row-tags {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-title small {
+  color: var(--muted-fg);
+}
+
+.row-tags {
+  color: var(--primary);
+  font-size: 13px;
+}
+
+/* mesh view */
+
+.mesh-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 16px;
+  align-items: start;
+}
+
+.mesh-canvas {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.mesh-svg {
+  display: block;
+  width: 100%;
+  height: min(72vh, 760px);
+  min-height: 420px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.mesh-svg.dragging {
+  cursor: grabbing;
+}
+
+.mesh-edge {
+  stroke: var(--primary);
+  stroke-opacity: 0.32;
+  stroke-width: calc(0.8px + var(--edge-weight) * 0.5px);
+  vector-effect: non-scaling-stroke;
+}
+
+.mesh-edge.muted {
+  stroke-opacity: 0.1;
+}
+
+.mesh-edge.highlighted {
+  stroke-opacity: 0.85;
+  stroke-width: calc(1.2px + var(--edge-weight) * 0.7px);
+}
+
+.mesh-node {
+  --node-l: 42%;
+  cursor: pointer;
+  outline: none;
+}
+
+.mesh-node .hit {
+  fill: transparent;
+}
+
+.mesh-node .dot {
+  fill: hsl(var(--hue) 55% var(--node-l));
+  stroke: var(--card);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  transition: opacity 0.15s ease;
+}
+
+.mesh-node:hover .dot,
+.mesh-node:focus-visible .dot {
+  stroke: var(--fg);
+  stroke-width: 2.5px;
+}
+
+.mesh-node.dim .dot {
+  opacity: 0.18;
+}
+
+.mesh-node text {
+  fill: var(--fg);
+  paint-order: stroke;
+  stroke: var(--card);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.mesh-controls {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.mesh-hint {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  font-size: 13px;
+}
+
+.mesh-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.mesh-side h2 {
+  font-size: 15px;
+  color: var(--muted-fg);
+}
+
+.mesh-side p {
+  margin: 0;
+}
+
+.mesh-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mesh-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mesh-tag:hover {
+  background: var(--accent);
+}
+
+.mesh-tag.active {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+.mesh-tag span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * The tag panel follows the room the library actually has (the content area, not the whole window):
+ * a scrolling list with frequency bars beside the map, or wrapping chips under it when space is tight.
+ */
+
+.lib-body {
+  container-type: inline-size;
+  container-name: lib;
+}
+
+.mesh-side {
+  /* Never taller than the map, so a short window scrolls the list instead of the page. */
+  max-height: min(72vh, 760px);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.mesh-tag {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The bar behind a tag's name grows with how many memos use it. */
+.mesh-tag::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--ratio, 0) * 100%);
+  background: var(--accent);
+  opacity: 0.75;
+  z-index: -1;
+}
+
+.mesh-tag.active::before {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.mesh-tag strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The tag panel always stays on the right; it narrows with the available room instead of dropping below. */
+.mesh-wrap {
+  grid-template-columns: minmax(0, 1fr) clamp(158px, 21cqi, 260px);
+}
+
+@container lib (max-width: 980px) {
+  .mesh-side {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  /* The explanation is dropped first when room is short, the list itself stays. */
+  .mesh-side p {
+    display: none;
+  }
+
+  .mesh-tag {
+    min-height: 30px;
+    padding: 0 8px;
+    gap: 6px;
+    font-size: 13px;
+  }
+}
+
+@container lib (max-width: 700px) {
+  .mesh-side h2 {
+    font-size: 13px;
+  }
+
+  .mesh-tag {
+    min-height: 28px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  .mesh-svg {
+    height: min(64vh, 560px);
+    min-height: 340px;
+  }
+
+  .mesh-controls {
+    flex-wrap: wrap;
+    right: 12px;
+  }
+}
+
+/* pop-up */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  position: relative;
+  width: min(900px, 100%);
+  max-height: min(92dvh, 960px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  padding: 0 28px 28px;
+  outline: none;
+}
+
+.modal-close {
+  position: sticky;
+  top: 8px;
+  float: right;
+  z-index: 3;
+  margin: 8px -12px 0 0;
+  background: var(--bg);
+}
+
+.modal .detail {
+  max-width: none;
+}
+
+.modal .detail-bar {
+  top: 0;
+  padding-top: 12px;
+  padding-right: 48px;
+}
+
+/* media preview */
+
+.media {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.media-main {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  border-radius: var(--radius);
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.media-main img,
+video.media-main {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.media-poster {
+  position: relative;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  aspect-ratio: 16 / 9;
+}
+
+.media-poster img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+}
+
+.media-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.media-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.media-strip button {
+  flex: none;
+  width: 84px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--muted);
+  cursor: pointer;
+}
+
+.media-strip button.active {
+  border-color: var(--primary);
+}
+
+.media-strip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 13.5px;
+}
+
+/*
+ * Floating effect: on hover a card rises a little and its shadow softens outward; a list row does the
+ * same, even more slightly. Nothing rotates or skews. Only for a real mouse, and never with reduced
+ * motion.
+ */
+
+:root {
+  --lift-shadow: 0 10px 20px rgba(32, 45, 41, 0.13), 0 3px 6px rgba(32, 45, 41, 0.07);
+  --lift-shadow-row: 0 6px 14px rgba(32, 45, 41, 0.13), 0 2px 4px rgba(32, 45, 41, 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --lift-shadow: 0 12px 24px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.3);
+    --lift-shadow-row: 0 8px 18px rgba(0, 0, 0, 0.42), 0 2px 5px rgba(0, 0, 0, 0.3);
+  }
+}
+
+:root[data-theme="dark"] {
+  --lift-shadow: 0 12px 24px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --lift-shadow-row: 0 8px 18px rgba(0, 0, 0, 0.42), 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tile,
+.list-row:not(.head) {
+  transition:
+    transform 0.16s ease-out,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.15s ease;
+}
+
+.tile-thumb img {
+  transition: transform 0.4s ease;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .tile:hover,
+  .tile:focus-within {
+    transform: translateY(-3px);
+    box-shadow: var(--lift-shadow);
+    border-color: var(--ring);
+    position: relative;
+    z-index: 2;
+  }
+
+  .tile:hover .tile-thumb img {
+    transform: scale(1.03);
+  }
+
+  .list-row:not(.head):hover,
+  .list-row:not(.head):focus-within {
+    transform: translateY(-1px);
+    box-shadow: var(--lift-shadow-row);
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* settings: the order providers are tried in */
+
+.chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chain li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--muted);
+  font-size: 14px;
+}
+
+.chain li.ready {
+  border-color: var(--ok);
+}
+
+.chain li.missing {
+  opacity: 0.7;
+}
+
+.chain-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-fg);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* sort bar: icon-only buttons in one rounded group, as in SongYUE2 */
+
+.sortbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.sortbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted-fg);
+  cursor: pointer;
+}
+
+.sortbar button:hover {
+  color: var(--fg);
+  background: var(--accent);
+}
+
+.sortbar button.active {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+.sortbar-sep {
+  align-self: stretch;
+  width: 1px;
+  margin: 4px 3px;
+  background: var(--border);
+}
+
+.sortbar.compact button {
+  width: 30px;
+  height: 26px;
+}
+
+/* phone: the chips scroll sideways while the sort buttons stay fixed at the right end of the row */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-row > .filters {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.filter-row > .sortbar {
+  flex-shrink: 0;
+}
+
+.filter-row .sortbar.compact button {
+  width: 26px;
+}
+
+.cat-sort {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 2px 2px;
+}
+
+/* filter chips on the left, retry and sort on the right */
+
+.lib-filterbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lib-filterbar .filters {
+  flex: 1;
+  min-width: 0;
+}
+
+.lib-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.btn.retry-failed {
+  border-color: var(--warn-fg);
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  white-space: nowrap;
+}
+
+.btn.retry-failed:hover:not(:disabled) {
+  background: var(--warn-bg);
+  filter: brightness(0.96);
+}
+
+.btn.retry-failed.wide {
+  width: 100%;
+  min-height: 40px;
+  flex: none;
+}
+
+/* favorite / edit / delete on a card (top right) and on a list row (right end) */
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.item-actions .icon-btn.act svg {
+  flex: none;
+}
+
+.item-actions .icon-btn.act.active svg {
+  fill: currentColor;
+}
+
+.tile {
+  position: relative;
+}
+
+.tile-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.tile-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.tile-actions .icon-btn.act {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.tile-actions .icon-btn.act:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.tile-actions .icon-btn.act.active {
+  color: #ffd76a;
+}
+
+.tile-actions .icon-btn.danger.armed,
+.row-actions .icon-btn.danger.armed {
+  background: var(--danger);
+  color: #fff;
+  padding: 0 10px;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 0;
+}
+
+.list-row.head {
+  padding: 0 8px 0 0;
+}
+
+.row-link {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 2.4fr) minmax(90px, 0.9fr) minmax(0, 1.4fr) 76px 84px;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0 8px 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.list-row.head .row-link {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.list-row:not(.head):hover {
+  background: var(--accent);
+}
+
+.row-actions-space,
+.row-actions {
+  flex: none;
+  width: 132px;
+}
+
+.row-actions {
+  justify-content: flex-end;
+}
+
+.row-actions .icon-btn.act {
+  min-width: 34px;
+  min-height: 34px;
+  color: var(--muted-fg);
+}
+
+.row-actions .icon-btn.act:hover {
+  color: var(--fg);
+  background: var(--muted);
+}
+
+.row-actions .icon-btn.act.active {
+  color: var(--primary);
+}
+
+.row-actions .icon-btn.danger:not(.armed):hover {
+  color: var(--danger);
+}
+
+/* phone: category picker above the list */
+
+.category-select select {
+  font-weight: 600;
+}
+
+/* A taller header must push the cards down, never squeeze the search box or the chip row. */
+.list-pane > .category-select,
+.list-pane > .search,
+.list-pane > .filters,
+.list-pane > .notice {
+  flex: none;
+}
+
+.card-thumb-wrap {
+  position: relative;
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--muted);
+}
+
+.card-thumb-wrap .card-thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mesh-node {
+    --node-l: 62%;
+  }
+}
+
+:root[data-theme="dark"] .mesh-node {
+  --node-l: 62%;
+}
+
+@media (max-width: 999px) {
+  /* The pop-up is a bottom sheet on a narrow window. */
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-height: 94dvh;
+    border-radius: 14px 14px 0 0;
+    padding: 0 16px 24px;
+  }
+}
+
+/* import screen (PC only) */
+
+.import-page {
+  max-width: 900px;
+}
+
+.import-pick {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.import-filters h2,
+.import-list h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.import-filters {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.import-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-select {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted-fg);
+}
+
+.import-select select {
+  width: auto;
+  padding: 3px 8px;
+  font-size: 13px;
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--fg);
+}
+
+.import-hint {
+  margin: 0;
+  font-size: 13px;
+}
+
+.import-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.import-list-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.import-list ul {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.import-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.import-list li label {
+  display: grid;
+  grid-template-columns: auto 74px 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.import-list li.off {
+  opacity: 0.5;
+}
+
+.import-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-date {
+  font-size: 12px;
+}
+
+.import-kind {
+  justify-self: start;
+}
+
+.import-save {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  background: var(--bg);
+}
+
+.import-chips .chip.small {
+  cursor: pointer;
+  min-height: 28px;
+  padding: 3px 10px;
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.import-chips .chip.small.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-fg);
+}
+
+a.btn {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* A date sort button shows the direction next to its icon. */
+.sort-dir {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+.sort-dir small {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
